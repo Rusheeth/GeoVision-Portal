@@ -1,73 +1,139 @@
-# Welcome to your Lovable project
+# 🌍 GeoVision — AI-Powered Earth Intelligence Platform
 
-## Project info
+Real-time satellite-driven environmental risk monitoring using deep learning and Sentinel-2 multispectral imagery.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## ✨ Features
 
-## How can I edit this code?
+- **CNN Land-Use Classification** — ResNet-50 trained on EuroSAT (27,000 images, 10 classes, 92.5% accuracy)
+- **NDVI / NDWI Analysis** — Vegetation health and water body detection from spectral bands
+- **Automated Monitoring** — 24-hour cycle tracking 6 critical global regions
+- **Real-Time Alerts** — Risk engine detects deforestation, flooding, heat islands, and pollution
+- **Interactive Dashboard** — Live charts, regional monitoring table, and risk scores
+- **Upload & Classify** — Drag-and-drop satellite image analysis (JPG, PNG, GeoTIFF)
+- **Google OAuth** — Secure authentication via Supabase with JWT and RBAC
 
-There are several ways of editing your application.
+## 🛰 Monitored Regions
 
-**Use Lovable**
+| Region | Coordinates | Primary Risk |
+|--------|------------|--------------|
+| Amazon Basin | -3.47°, -62.22° | Deforestation |
+| Congo Basin | 0.00°, 22.00° | Forest Loss |
+| Ganges Delta | 22.00°, 90.00° | Flooding |
+| Lake Chad | 13.00°, 14.50° | Water Scarcity |
+| Borneo Rainforest | 1.00°, 114.00° | Deforestation |
+| Great Barrier Reef | -18.00°, 147.00° | Marine Degradation |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 🧠 Tech Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts |
+| Backend | Python 3.12, FastAPI, Uvicorn |
+| AI/ML | PyTorch, torchvision (ResNet-50), NumPy, Pillow |
+| Database | Supabase (PostgreSQL), Row-Level Security |
+| Auth | Google OAuth 2.0, JWT (HS256) |
+| Satellite Data | Sentinel Hub API, Sentinel-2 L2A |
+| Image Processing | rasterio, Pillow |
+| Scheduler | APScheduler (24-hour cycle) |
+| Deployment | Vercel (frontend), Render (backend) |
 
-**Use your preferred IDE**
+## 🚀 Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js 18+ & npm
+- Python 3.12+
+- Supabase account
+- Sentinel Hub API credentials (optional)
 
-Follow these steps:
+### Frontend
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Backend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+cd gsis-backend
 
-**Use GitHub Codespaces**
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate  # Windows
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Install dependencies
+pip install -r requirements.txt
 
-## What technologies are used for this project?
+# Create .env file with:
+# SUPABASE_URL=your_supabase_url
+# SUPABASE_SERVICE_KEY=your_service_key
+# SUPABASE_JWT_SECRET=your_jwt_secret
+# SENTINEL_CLIENT_ID=your_sentinel_id
+# SENTINEL_CLIENT_SECRET=your_sentinel_secret
 
-This project is built with:
+# Run server
+python -m uvicorn app.main:app --reload
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### CNN Training (optional)
 
-## How can I deploy this project?
+```bash
+cd geo-vision-training
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+# Download EuroSAT dataset
+python download_eurosat.py
 
-## Can I connect a custom domain to my Lovable project?
+# Train model
+python train.py
 
-Yes, you can!
+# Copy trained model to backend
+copy landuse_model.pt ..\gsis-backend\models\
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📁 Project Structure
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+gsis-main/
+├── src/                          # React frontend
+│   ├── pages/                    # Dashboard, Upload, Analytics, Auth
+│   ├── components/               # UI components
+│   ├── services/                 # API client, utilities
+│   └── integrations/supabase/    # Supabase client & types
+├── gsis-backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── routers/              # API endpoints
+│   │   ├── services/             # CNN, NDVI, NDWI, Heat, Sentinel
+│   │   ├── models/               # Data models
+│   │   └── core/                 # Config, security, database
+│   └── models/                   # Trained model weights (.pt)
+├── geo-vision-training/          # CNN training scripts
+│   ├── train.py                  # ResNet-50 transfer learning
+│   └── download_eurosat.py       # Dataset downloader
+├── supabase/                     # Database migrations
+└── public/                       # Static assets
+```
+
+## 📊 Model Performance
+
+| Metric | Value |
+|--------|-------|
+| Architecture | ResNet-50 (frozen backbone + custom head) |
+| Dataset | EuroSAT (27,000 images, 10 classes) |
+| Validation Accuracy | **92.5%** |
+| Training Time | ~4 hours (CPU) |
+| Model Size | ~94 MB |
+
+## 📝 License
+
+This project is for academic/educational purposes.
+
+## 🙏 Acknowledgments
+
+- [EuroSAT Dataset](https://github.com/phelber/EuroSAT) — Helber et al.
+- [Sentinel Hub](https://www.sentinel-hub.com/) — Satellite data API
+- [Supabase](https://supabase.com/) — Backend-as-a-Service
+- [PyTorch](https://pytorch.org/) — Deep learning framework
