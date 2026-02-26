@@ -221,7 +221,19 @@ const Upload = () => {
           {result && (
             <>
               {result.analysis_model && (
-                <div className="flex justify-center"><span className={`text-[10px] px-3 py-1 rounded-full font-semibold ${result.analysis_model === "ndvi-satellite" ? "bg-accent/20 text-accent" : "bg-primary/20 text-primary"}`}>{result.analysis_model === "ndvi-satellite" ? "🛰 Satellite NDVI+NDWI" : "🎨 RGB Pixel Analysis"}</span></div>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  <span className={`text-[10px] px-3 py-1 rounded-full font-semibold ${result.analysis_model === "ndvi-satellite" ? "bg-accent/20 text-accent" : result.analysis_model === "cnn-resnet50" ? "bg-emerald-500/20 text-emerald-400" : "bg-primary/20 text-primary"}`}>
+                    {result.analysis_model === "ndvi-satellite" ? "🛰 Satellite NDVI+NDWI" : result.analysis_model === "cnn-resnet50" ? "🧠 CNN ResNet50 (EuroSAT)" : "🎨 RGB Pixel Analysis"}
+                  </span>
+                  {result.cnn_class && result.analysis_model !== "cnn-resnet50" && (
+                    <span className="text-[10px] px-3 py-1 rounded-full font-semibold bg-emerald-500/20 text-emerald-400">🧠 CNN Verified</span>
+                  )}
+                  {result.processing_metadata?.analysis_engines && result.processing_metadata.analysis_engines.length > 1 && (
+                    <span className="text-[10px] px-3 py-1 rounded-full font-semibold bg-secondary text-muted-foreground">
+                      {result.processing_metadata.analysis_engines.join(" + ")}
+                    </span>
+                  )}
+                </div>
               )}
 
               {/* Class + Confidence */}
@@ -273,6 +285,43 @@ const Upload = () => {
                   </div>
                 )}
               </div>
+
+              {/* CNN Deep Learning Results */}
+              {result.cnn_class && (
+                <div className="glass-card-solid p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Cpu className="h-4 w-4 text-emerald-400" />
+                    <h4 className="text-sm font-semibold text-foreground">CNN Deep Learning Classification</h4>
+                    {result.cnn_device && <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground ml-auto">{result.cnn_device.toUpperCase()}</span>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">CNN Predicted Class</p>
+                      <p className="text-lg font-bold text-emerald-400">{result.cnn_class}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">CNN Confidence</p>
+                      <p className="text-lg font-bold text-emerald-400">{Math.round((result.cnn_confidence ?? 0) * 100)}%</p>
+                    </div>
+                  </div>
+                  {result.cnn_probabilities && result.cnn_probabilities.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-[10px] text-muted-foreground mb-2">EuroSAT Class Probabilities</p>
+                      <div className="space-y-1">
+                        {result.cnn_probabilities.slice(0, 5).map((p) => (
+                          <div key={p.name} className="flex items-center gap-2 text-xs">
+                            <span className="w-32 truncate text-muted-foreground">{p.name}</span>
+                            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
+                              <div className="h-full rounded-full bg-emerald-500 transition-all duration-700" style={{ width: `${p.value}%` }} />
+                            </div>
+                            <span className="w-10 text-right font-medium text-foreground">{p.value}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Probability chart */}
               <div className="glass-card-solid p-4">

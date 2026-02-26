@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const PIE_COLORS = [CHART_COLORS.accent, CHART_COLORS.primary, CHART_COLORS.warning, CHART_COLORS.blue, CHART_COLORS.purple];
 const regions = ["All Regions", "Amazon", "Congo Basin", "SE Asia", "Central America"];
@@ -25,7 +26,19 @@ const Deforestation = () => {
   const filteredNdvi = deforestationData.ndviTrend.slice(-months);
   const regionMul = region === "All Regions" ? 1 : 0.5 + regions.indexOf(region) * 0.15;
 
-  const exportReport = () => toast({ title: "Report Exported", description: "Deforestation report (mock PDF) downloaded." });
+  const exportReport = () => {
+    const data = [
+      { Metric: "Forest Loss (km²)", Value: Math.round(12480 * regionMul).toString() },
+      { Metric: "NDVI Index", Value: (0.42 * regionMul).toFixed(2) },
+      { Metric: "Mining Sites", Value: Math.round(347 * regionMul).toString() },
+      { Metric: "Risk Score", Value: `${Math.round(78 * regionMul)}/100` },
+      { Metric: "Region", Value: region },
+      { Metric: "Time Range", Value: timeRange },
+      ...deforestationData.regionBreakdown.map(r => ({ Metric: r.name, Value: `${r.value}%` })),
+    ];
+    exportPDF("GeoVision — Deforestation & Mining Report", data, ["Metric", "Value"], "deforestation_report.pdf");
+    toast({ title: "PDF Exported", description: "Deforestation analysis report downloaded." });
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">

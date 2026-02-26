@@ -9,6 +9,7 @@ import { cropData, CHART_COLORS } from "@/services/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const cropTypes = ["All Crops", "Wheat", "Rice", "Corn", "Soy"];
 
@@ -33,8 +34,19 @@ const CropStress = () => {
           <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>{cropTypes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
         </Select>
-        <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-xs" onClick={exportCSV}>
-          <Download className="h-3 w-3" /> Export CSV
+        <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-xs" onClick={() => {
+          const data = [
+            { Metric: "Stressed Regions", Value: "84" },
+            { Metric: "NDVI Anomaly", Value: "-0.12" },
+            { Metric: "Drought Risk Areas", Value: "42" },
+            { Metric: "Yield Forecast", Value: "8% loss" },
+            { Metric: "Crop Filter", Value: cropType },
+            ...cropData.yieldForecast.map(c => ({ Metric: c.crop, Value: `Current: ${c.current}, Predicted: ${c.predicted}` })),
+          ];
+          exportPDF("GeoVision — Crop Stress Report", data, ["Metric", "Value"], "crop_stress_report.pdf");
+          toast({ title: "PDF Exported", description: "Crop stress report downloaded." });
+        }}>
+          <Download className="h-3 w-3" /> Export PDF
         </Button>
       </div>
 

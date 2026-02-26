@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Thermometer, Sun, Building, MapPin } from "lucide-react";
+import { Thermometer, Sun, Building, MapPin, Download } from "lucide-react";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import StatCard from "@/components/shared/StatCard";
 import ChartCard from "@/components/shared/ChartCard";
@@ -7,6 +7,9 @@ import RiskCard from "@/components/shared/RiskCard";
 import ModuleHeader from "@/components/shared/ModuleHeader";
 import { heatData, CHART_COLORS } from "@/services/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const PIE_COLORS = [CHART_COLORS.danger, CHART_COLORS.accent, CHART_COLORS.blue, CHART_COLORS.warning];
 const cities = ["All Cities", "Phoenix", "Delhi NCR", "Dubai", "Bangkok", "Lagos"];
@@ -37,6 +40,21 @@ const UrbanHeat = () => {
           <span className="text-xs text-muted-foreground">Risk Level:</span>
           <span className={`text-xs px-2 py-0.5 rounded-full text-foreground font-semibold ${risk.color}`}>{risk.label}</span>
         </div>
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => {
+          const data = [
+            { Metric: "Heat Islands", Value: "156" },
+            { Metric: "Temp Anomaly (°C)", Value: "3.8" },
+            { Metric: "Urban Heat Score", Value: "82/100" },
+            { Metric: "Cooling Priority Zones", Value: "48" },
+            { Metric: "City", Value: city },
+            { Metric: "Risk Level", Value: risk.label },
+            ...heatData.coverComparison.map(c => ({ Metric: c.name, Value: `${c.value}%` })),
+          ];
+          exportPDF("GeoVision — Urban Heat Islands Report", data, ["Metric", "Value"], "urban_heat_report.pdf");
+          toast({ title: "PDF Exported", description: "Urban heat report downloaded." });
+        }}>
+          <Download className="h-3 w-3" /> Export PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

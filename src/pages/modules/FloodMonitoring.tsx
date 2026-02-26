@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudRain, Waves, AlertTriangle, Building, Play, Pause } from "lucide-react";
+import { CloudRain, Waves, AlertTriangle, Building, Play, Pause, Download } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import StatCard from "@/components/shared/StatCard";
 import ChartCard from "@/components/shared/ChartCard";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useApp } from "@/context/AppContext";
 import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const FloodMonitoring = () => {
   const { createAlert, role } = useApp();
@@ -60,6 +61,20 @@ const FloodMonitoring = () => {
             <AlertTriangle className="h-3 w-3" /> Trigger Alert
           </Button>
         )}
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => {
+          const data = [
+            { Metric: "Active Flood Zones", Value: (latest?.severity || 0).toString() },
+            { Metric: "Affected Area (km²)", Value: (latest?.area || 0).toString() },
+            { Metric: "Severity Index", Value: `${latest?.severity || 0}/10` },
+            { Metric: "Urban Impact", Value: "34%" },
+            { Metric: "Timeline", Value: floodData.expansionTrend[timelineIdx]?.month || "" },
+            ...floodData.urbanImpact.map(u => ({ Metric: u.city, Value: `Impact: ${u.impact}` })),
+          ];
+          exportPDF("GeoVision — Flood & Disaster Report", data, ["Metric", "Value"], "flood_monitoring_report.pdf");
+          toast({ title: "PDF Exported", description: "Flood monitoring report downloaded." });
+        }}>
+          <Download className="h-3 w-3" /> Export PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

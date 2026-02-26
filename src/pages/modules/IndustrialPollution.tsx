@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Factory, Flame, AlertTriangle, Droplets, CheckCircle } from "lucide-react";
+import { Factory, Flame, AlertTriangle, Droplets, CheckCircle, Download } from "lucide-react";
 import { AreaChart, Area, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import StatCard from "@/components/shared/StatCard";
 import ChartCard from "@/components/shared/ChartCard";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/context/AppContext";
 import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const PIE_COLORS = [CHART_COLORS.danger, CHART_COLORS.warning, CHART_COLORS.primary, CHART_COLORS.accent];
 const zones = ["All Zones", "Ganges Basin", "Pearl River Delta", "Gulf Coast", "Rhine Valley", "Mekong Delta"];
@@ -47,6 +48,21 @@ const IndustrialPollution = () => {
           <div className={`h-2.5 w-2.5 rounded-full ${zone !== "All Zones" ? "bg-destructive" : "bg-warning"}`} />
           <span className="text-xs text-muted-foreground">Water Contamination: {zone !== "All Zones" ? "Detected" : "45 sites"}</span>
         </div>
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => {
+          const data = [
+            { Metric: "Industrial Zones", Value: "234" },
+            { Metric: "Thermal Anomalies", Value: "89" },
+            { Metric: "Pollution Index", Value: "74/100" },
+            { Metric: "Water Contamination", Value: "45 sites" },
+            { Metric: "Zone", Value: zone },
+            { Metric: "Severity Filter", Value: severityFilter },
+            ...pollutionData.severityBreakdown.map(s => ({ Metric: s.name, Value: `${s.value}%` })),
+          ];
+          exportPDF("GeoVision — Industrial Pollution Report", data, ["Metric", "Value"], "pollution_report.pdf");
+          toast({ title: "PDF Exported", description: "Pollution report downloaded." });
+        }}>
+          <Download className="h-3 w-3" /> Export PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

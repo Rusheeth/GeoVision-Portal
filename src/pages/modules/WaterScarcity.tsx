@@ -9,6 +9,7 @@ import { waterData, CHART_COLORS } from "@/services/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { exportPDF } from "@/services/exportUtils";
 
 const reservoirs = ["All Reservoirs", "Lake Chad", "Aral Sea", "Dead Sea", "Lake Mead", "Lake Poopo"];
 const seasons = ["All Seasons", "Spring", "Summer", "Autumn", "Winter"];
@@ -17,7 +18,7 @@ const WaterScarcity = () => {
   const [reservoir, setReservoir] = useState("All Reservoirs");
   const [season, setSeason] = useState("All Seasons");
 
-  const seasonMonths: Record<string, number[]> = { Spring: [2,3,4], Summer: [5,6,7], Autumn: [8,9,10], Winter: [11,0,1] };
+  const seasonMonths: Record<string, number[]> = { Spring: [2, 3, 4], Summer: [5, 6, 7], Autumn: [8, 9, 10], Winter: [11, 0, 1] };
   const filteredNdwi = season === "All Seasons" ? waterData.ndwiTrend : waterData.ndwiTrend.filter((_, i) => seasonMonths[season]?.includes(i));
   const mul = reservoir === "All Reservoirs" ? 1 : 0.5 + reservoirs.indexOf(reservoir) * 0.12;
 
@@ -34,7 +35,19 @@ const WaterScarcity = () => {
           <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
           <SelectContent>{seasons.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
         </Select>
-        <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-xs" onClick={() => toast({ title: "Report Generated", description: "Water Risk Report (mock) ready." })}>
+        <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-xs" onClick={() => {
+          const data = [
+            { Metric: "Reservoirs Critical", Value: Math.round(23 * mul).toString() },
+            { Metric: "NDWI Index", Value: (0.31 * mul).toFixed(2) },
+            { Metric: "Water Stress Regions", Value: Math.round(67 * mul).toString() },
+            { Metric: "Risk Score", Value: `${Math.round(72 * mul)}/100` },
+            { Metric: "Reservoir", Value: reservoir },
+            { Metric: "Season", Value: season },
+            ...waterData.regionRisk.map(r => ({ Metric: r.region, Value: `Risk: ${r.risk}` })),
+          ];
+          exportPDF("GeoVision — Water Scarcity Report", data, ["Metric", "Value"], "water_scarcity_report.pdf");
+          toast({ title: "PDF Exported", description: "Water scarcity report downloaded." });
+        }}>
           <Download className="h-3 w-3" /> Generate Report
         </Button>
       </div>

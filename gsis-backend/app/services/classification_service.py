@@ -114,12 +114,12 @@ def analyze_rgb_image(image: Image.Image) -> dict:
     gr, br, rr = avg_g / total_i, avg_b / total_i, avg_r / total_i
 
     scores = {
-        "Forest": (gr * 1.5) + max(ndvi_mean, 0) * 2.0 + (0.1 if avg_g > 100 else 0),
-        "Water Body": (br * 1.5) + max(-ndvi_mean, 0) * 1.5 + (0.2 if brightness < 100 else 0),
+        "Forest": (gr * 2.0) + max(ndvi_mean, 0) * 3.0 + (0.3 if avg_g > 100 and avg_g > avg_r else 0) + (0.2 if ndvi_mean > 0.05 else 0),
+        "Water Body": (br * 1.5) + max(-ndvi_mean, 0) * 1.5 + (0.3 if brightness < 100 else 0) + (0.2 if avg_b > avg_g else 0),
         "Urban Area": (rr * 1.0) + (texture / 255) * 1.5 + (0.15 if brightness > 140 else 0),
-        "Agriculture": (gr * 1.0) + (0.3 if 0 < ndvi_mean < 0.3 else 0) + (0.1 if 80 < avg_g < 150 else 0),
-        "Barren Land": (rr * 0.8) + (0.3 if abs(ndvi_mean) < 0.05 else 0) + (0.2 if brightness > 160 else 0),
-        "Wetland": (gr * 0.5 + br * 0.5) + (0.2 if 0 < ndvi_mean < 0.2 else 0),
+        "Agriculture": (gr * 0.8) + (0.3 if 0 < ndvi_mean < 0.15 else 0) + (0.1 if 80 < avg_g < 130 else 0),
+        "Barren Land": (rr * 0.8) + (0.3 if abs(ndvi_mean) < 0.03 else 0) + (0.2 if brightness > 160 else 0),
+        "Wetland": (gr * 0.5 + br * 0.5) + (0.2 if 0 < ndvi_mean < 0.1 else 0),
     }
     ts = sum(scores.values()) or 1.0
     probs = {k: round((v / ts) * 100, 1) for k, v in scores.items()}
@@ -195,8 +195,9 @@ def process_single_image(contents: bytes, filename: str) -> dict:
                 result["cnn_probabilities"] = cnn_result["cnn_probabilities"]
                 result["cnn_device"] = cnn_result["device"]
 
-                # CNN overrides pixel classification for RGB images
-                if not is_tiff:
+                # CNN overrides pixel classification only when confident enough
+                CNN_OVERRIDE_THRESHOLD = 0.50
+                if not is_tiff and cnn_result["cnn_confidence"] >= CNN_OVERRIDE_THRESHOLD:
                     result["predicted_class"] = cnn_result["cnn_class"]
                     result["confidence"] = cnn_result["cnn_confidence"]
                     result["analysis_model"] = "cnn-resnet50"
